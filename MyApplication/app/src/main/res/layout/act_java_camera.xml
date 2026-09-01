@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ImageView
+        android:id="@+id/java_camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_hud"
+        android:background="#FFF2F2F2"
+        android:contentDescription="VINS preview"
+        android:scaleType="fitCenter" />
+
+    <ImageView
+        android:id="@+id/camera_inset"
+        android:layout_width="200dp"
+        android:layout_height="150dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="154dp"
+        android:layout_marginTop="20dp"
+        android:background="#FF111820"
+        android:contentDescription="Live camera inset"
+        android:padding="2dp"
+        android:scaleType="centerCrop" />
+
+    <!-- The app is landscape-only. These panels use the letterbox margins, not the image. -->
+    <LinearLayout
+        android:id="@+id/left_hud"
+        android:layout_width="140dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:background="#E6000000"
+        android:orientation="vertical"
+        android:paddingLeft="14dp"
+        android:paddingTop="14dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="14dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="VINS"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="INITIALIZING 0%"
+            android:textColor="#8DE1B5"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/right_hud"
+        android:layout_width="58dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:background="#E6000000"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/save_image"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/vins_control"
+            android:contentDescription="Save frame"
+            android:gravity="center"
+            android:text="CAP"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/record"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/vins_control"
+            android:gravity="center"
+            android:text="REC"
+            android:textColor="#FF8C82"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_hud"
+        android:layout_width="match_parent"
+        android:layout_height="34dp"
+        android:layout_alignParentBottom="true"
+        android:background="#E6000000"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp">
+
+        <TextView
+            android:id="@+id/tv_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:singleLine="true"
+            android:text="POS -- -- --   ANG -- -- --"
+            android:textColor="#F2F6F8"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/tv_gps_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:singleLine="true"
+            android:text="GNSS --"
+            android:textColor="#AAB9C5"
+            android:textSize="10sp" />
+    </LinearLayout>
+</RelativeLayout>
