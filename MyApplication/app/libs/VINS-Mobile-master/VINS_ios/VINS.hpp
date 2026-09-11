@@ -126,6 +126,10 @@ public:
     bool failure_hand;
     bool failure_occur;
     int low_feature_failure_streak = 0;
+    // Frames elapsed since the last clearState(); guards the rebuild window
+    // during which last_track_num is legitimately near zero. See
+    // failureDetection().
+    int frames_since_reset = 0;
     Matrix3d last_R, last_R_old;
     Vector3d last_P, last_P_old;
     

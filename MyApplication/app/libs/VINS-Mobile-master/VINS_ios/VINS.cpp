@@ -70,6 +70,7 @@ void VINS::clearState() {
     frame_count = 0;
     first_imu = false;
     low_feature_failure_streak = 0;
+    frames_since_reset = 0;
     solver_flag = INITIAL;
     initial_timestamp = 0;
     printf("checkpoint 3");
@@ -223,7 +224,18 @@ void VINS::new2old() {
 bool VINS::failureDetection() {
     bool is_failure = false;
 
-    if (f_manager.last_track_num < 4) {
+    // Rebuilding grace period. clearState() empties f_manager.feature, and
+    // addFeatureCheckParallax() needs a few frames of repeated feature ids
+    // before last_track_num climbs back — measured at 3 to 11 frames on device.
+    // The low-feature rule below trips after only 3 consecutive frames, so a
+    // reset would re-trip during its own recovery window and loop forever.
+    // That is the observed failure mode: the device never converged unless the
+    // user happened to turn toward a richer texture. Skip the feature-count
+    // rule until the window has had a chance to rebuild.
+    if (frames_since_reset < 12) {
+        frames_since_reset++;
+        low_feature_failure_streak = 0;
+    } else if (f_manager.last_track_num < 4) {
         low_feature_failure_streak++;
         printf("low feature warning %d streak %d\n", f_manager.last_track_num,
                low_feature_failure_streak);
