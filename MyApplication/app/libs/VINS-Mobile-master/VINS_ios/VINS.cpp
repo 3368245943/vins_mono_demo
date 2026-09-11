@@ -16,7 +16,7 @@
 // 开启回环检测 或者 gps全局优化，最好二者选其一
 bool LOOP_CLOSURE = false;
 // Local VINS must remain usable before GPS has produced a global alignment.
-bool GLOBAL_OPTIMISE = false;
+bool GLOBAL_OPTIMISE = true;
 
 VINS::VINS()
         : f_manager{Rs}, fail_times{0},
@@ -838,48 +838,6 @@ void VINS::solve_ceres(int buf_num) {
 bool VINS::solveInitial() {
     printf("solve initial------------------------------------------\n");
     printf("PS %lf %lf %lf\n", Ps[0].x(), Ps[0].y(), Ps[0].z());
-
-    // Scale and gravity are not observable without enough inertial excitation.
-    // Accepting such an initialization produces the rapid one-direction drift
-    // seen while the device is nearly stationary.
-    {
-        if (all_image_frame.size() < 2) {
-            init_status = FAIL_IMU;
-            fail_times++;
-            return false;
-        }
-
-        Vector3d sum_g = Vector3d::Zero();
-        int sample_count = 0;
-        for (auto frame_it = std::next(all_image_frame.begin());
-             frame_it != all_image_frame.end(); ++frame_it) {
-            const double dt = frame_it->second.pre_integration->sum_dt;
-            if (dt <= 1e-6) {
-                init_status = FAIL_IMU;
-                fail_times++;
-                return false;
-            }
-            sum_g += frame_it->second.pre_integration->delta_v / dt;
-            sample_count++;
-        }
-
-        const Vector3d average_g = sum_g / sample_count;
-        double variance = 0.0;
-        for (auto frame_it = std::next(all_image_frame.begin());
-             frame_it != all_image_frame.end(); ++frame_it) {
-            const double dt = frame_it->second.pre_integration->sum_dt;
-            const Vector3d sample_g = frame_it->second.pre_integration->delta_v / dt;
-            variance += (sample_g - average_g).squaredNorm();
-        }
-        const double imu_variation = std::sqrt(variance / sample_count);
-        printf("IMU excitation variation %f\n", imu_variation);
-        if (imu_variation < 0.25) {
-            printf("init rejected: insufficient IMU excitation\n");
-            init_status = FAIL_IMU;
-            fail_times++;
-            return false;
-        }
-    }
 
     // global sfm
     Quaterniond *Q = new Quaterniond[frame_count + 1];
