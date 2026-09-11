@@ -29,6 +29,12 @@
 // real bottleneck.
 #define MAX_CNT 150
 #define MIN_DIST 30
+// Below this many surviving tracks, and only while VINS is already tracking,
+// the front-end is treated as self-locked and drops its stale points so the
+// next detection pass can re-seed the whole image. The observed lock-up left
+// exactly 1 track, so keep this well under the normal steady-state count to
+// avoid discarding healthy correspondences. See FeatureTracker::readImage().
+#define MIN_TRACK_CNT 8
 #define COL 480
 #define ROW 640
 #define F_THRESHOLD 1.0

@@ -262,7 +262,29 @@ void FeatureTracker::readImage(const cv::Mat &_img, cv::Mat &result, int _frame_
             
             for (auto &n : track_cnt)
                 n++;
-            
+
+            // Self-lock recovery. Four filters run between optical flow and this
+            // point (LK status, inBorder, findFundamentalMat, rejectWithF), and
+            // each one calls reduceVector. When the incoming track set is already
+            // tiny, the filters can leave only one or two points, and the mask
+            // built from those survivors still blocks most of the image, so
+            // goodFeaturesToTrack cannot re-seed and the count never recovers.
+            // Observed on device as "adding feature points 1" held for ~15 s.
+            //
+            // This must only fire once VINS is already tracking. During INITIAL
+            // the window is still being built and a low count is expected — and
+            // GlobalSFM needs the surviving correspondences, so discarding them
+            // there makes solveInitial() fail with
+            // "init solve 5pts between first frame and last frame failed".
+            if (vins_normal &&
+                static_cast<int>(forw_pts.size()) > 0 &&
+                static_cast<int>(forw_pts.size()) < MIN_TRACK_CNT) {
+                forw_pts.clear();
+                ids.clear();
+                track_cnt.clear();
+                parallax_cnt.clear();
+            }
+
             setMask();
             int n_max_cnt = MAX_CNT - static_cast<int>(forw_pts.size());
             
