@@ -21,7 +21,13 @@
 #include <opencv2/core/eigen.hpp>
 #include "vins_pnp.hpp"
 
-#define MAX_CNT 70
+// Restored upstream VINS-Mono feature budget. A previous round of local tuning
+// cut this to 70 and was never reverted, which starved the backend: tracking
+// counts fell below 4 often enough to trip failureDetection() -> clearState()
+// and produced the observed position resets. 480x640 with MIN_DIST=30 easily
+// supports 150 points (~435 theoretical slots), so the old value was the only
+// real bottleneck.
+#define MAX_CNT 150
 #define MIN_DIST 30
 #define COL 480
 #define ROW 640

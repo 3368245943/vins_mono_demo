@@ -7,6 +7,7 @@
 //
 
 #include "feature_tracker.hpp"
+#include <algorithm>
 
 int FeatureTracker::n_id = 0;
 FeatureTracker::FeatureTracker()
@@ -118,13 +119,21 @@ bool FeatureTracker::solveVinsPnP(double header, Vector3d &P, Matrix3d &R, bool 
      }
      */
     vector<IMG_MSG_LOCAL> feature_msg;
+    // solved_features carries backend feature ids, which are produced asynchronously
+    // and may reference ids the front-end has already dropped. Bound the monotonic
+    // scan by the front-end vector size, otherwise ids[i] runs past the end.
+    const int n_ids = static_cast<int>(ids.size());
     int i = 0;
     for (auto &it : solved_features)
     {
-        while(ids[i] < it.id)
+        if (n_ids <= 0 || i >= n_ids)
+            break;
+        while(i < n_ids && ids[i] < it.id)
         {
             i++;
         }
+        if(i >= n_ids)
+            break;
         if(ids[i] == it.id)
         {
             IMG_MSG_LOCAL tmp;
@@ -301,7 +310,10 @@ void FeatureTracker::readImage(const cv::Mat &_img, cv::Mat &result, int _frame_
             if (!completed)
                 break;
         }
-        for(int i = 0; i<ids.size(); i++)
+        // ids, cur_pts and forw_pts must stay the same length; index by the
+        // data array itself so a stale ids entry cannot walk cur_pts out of range.
+        const size_t n_msg = std::min(ids.size(), cur_pts.size());
+        for(size_t i = 0; i < n_msg; i++)
         {
             double x = (cur_pts[i].x - PX)/FOCUS_LENGTH_X;
             double y = (cur_pts[i].y - PY)/FOCUS_LENGTH_Y;

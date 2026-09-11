@@ -472,15 +472,7 @@ void VINS::solve_ceres(int buf_num) {
     for (int i = 0; i < WINDOW_SIZE + 1; i++) {
         ceres::LocalParameterization *local_parameterization = new PoseLocalParameterization();
         problem.AddParameterBlock(para_Pose[i], SIZE_POSE, local_parameterization);
-        // The calibrated gyro is read from ASensorEvent.vector, so keep its
-        // bias fixed. Accelerometer calibration still leaves a device-specific
-        // constant offset; VINS must estimate Ba or that offset is integrated
-        // into velocity even while the phone is stationary.
-        vector<int> fixed_bias_indices{6, 7, 8};
-        ceres::LocalParameterization *speed_bias_parameterization =
-                new ceres::SubsetParameterization(SIZE_SPEEDBIAS, fixed_bias_indices);
-        problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS,
-                                  speed_bias_parameterization);
+        problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS);
     }
 
     for (int i = 0; i < NUM_OF_CAM; i++) {
@@ -493,9 +485,12 @@ void VINS::solve_ceres(int buf_num) {
         problem.AddParameterBlock(para_Feature[i], SIZE_FEATURE);
     }
 
-    for (int i = 0; i <= WINDOW_SIZE; ++i) {
-        Bgs[i].setZero();
-    }
+    // Do NOT zero Bgs here. old2new() copies Bgs into para_SpeedBias[6..8], so
+    // clearing them forced the gyro bias linearization point back to zero on
+    // every solve. The optimizer could then never carry its previous estimate
+    // forward, which is exactly the "state jump" failure mode described in the
+    // Tassel design notes. Bgs is owned by the sliding window and updated by
+    // new2old() after each solve, so it must be handed over as-is.
     old2new();
 
     //marginalization factor

@@ -1,0 +1,16 @@
+# IDE
+.idea/
+*.iml
+.gradle/
+
+# Build output
+build/
+MyApplication/app/build/
+.cxx/
+obj/
+*.apk
+*.aab
+
+# Local config
+local.properties
+.DS_Store
