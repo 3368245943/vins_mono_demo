@@ -423,6 +423,20 @@ std::vector<std::pair<std::vector<ImuConstPtr>, ImgConstPtr>> ViewController::ge
             IMUs.emplace_back(imu_msg_buf.front());
             imu_msg_buf.pop();
         }
+        // End preintegration exactly at the camera timestamp, not at the
+        // previous hardware sample. Keep the right endpoint in the queue so
+        // the next interval continues from this interpolated boundary.
+        if (!IMUs.empty() && IMUs.back()->header < img_msg->header) {
+            const auto &left = IMUs.back();
+            const auto &right = imu_msg_buf.front();
+            const double alpha = (img_msg->header - left->header)
+                    / (right->header - left->header);
+            shared_ptr<IMU_MSG> boundary(new IMU_MSG());
+            boundary->header = img_msg->header;
+            boundary->acc = (1.0 - alpha) * left->acc + alpha * right->acc;
+            boundary->gyr = (1.0 - alpha) * left->gyr + alpha * right->gyr;
+            IMUs.emplace_back(boundary);
+        }
         //__android_log_print(ANDROID_LOG_INFO, APPNAME, "IMU_buf = %d",IMUs.size());
         measurements.emplace_back(IMUs, img_msg);
     }
